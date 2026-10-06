@@ -1,12 +1,1126 @@
-<title>群务管理公开栏</title>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>广东雷达图综合查询器</title>
+<style>
+:root {
+  --bg:#151a26; --panel:#20293c; --panel2:#272f42; --line:#3a4a6b;
+  --line2:#405880; --txt:#e6edf7; --txt2:#b4c5e0; --txt3:#94a4c2; --txt4:#7889a8;
+  --accent:#5294ff; --accent2:#82b8ff; --accentbg:#305894;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body { height:100%; }
+body {
+  font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+  background:var(--bg); color:var(--txt);
+  display:flex; flex-direction:column; height:100vh; overflow:hidden;
+}
+header {
+  height:58px; flex-shrink:0;
+  background:linear-gradient(135deg,#232c40 0%,#2c446b 100%);
+  border-bottom:1px solid var(--line2);
+  display:flex; align-items:center; gap:12px; padding:0 18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+header .icon {
+  width:38px; height:38px; flex-shrink:0; border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(82,148,255,.12); border:1px solid rgba(130,184,255,.35);
+}
+header h1 { font-size:1.3rem; font-weight:700; color:#a0c8ff; }
+header p  { font-size:.78rem; color:var(--txt3); margin-top:2px; }
+
+.app-body { flex:1; display:flex; min-height:0; }
+
+/* ===== 左侧产品栏 ===== */
+.sidebar {
+  width:254px; flex-shrink:0; overflow-y:auto;
+  background:var(--panel); border-right:1px solid var(--line);
+  padding:12px 10px 22px;
+}
+.sidebar::-webkit-scrollbar, .progress-row::-webkit-scrollbar { width:6px; height:6px; }
+.sidebar::-webkit-scrollbar-thumb, .progress-row::-webkit-scrollbar-thumb { background:var(--line2); border-radius:3px; }
+.sel-hint {
+  font-size:.68rem; color:var(--accent2); background:rgba(82,148,255,.08);
+  border:1px dashed rgba(82,148,255,.4); border-radius:8px;
+  padding:7px 9px; margin-bottom:8px; line-height:1.5;
+}
+.clear-btn {
+  width:100%; background:transparent; border:1px solid var(--line2); color:var(--txt3);
+  border-radius:8px; padding:7px 10px; font-size:.74rem; font-weight:600; cursor:pointer;
+  font-family:inherit; margin-bottom:12px; transition:all .12s;
+}
+.clear-btn:hover { border-color:#ff6b6b; color:#ff8a8a; background:rgba(239,68,68,.08); }
+.group-block { margin-bottom:6px; }
+.group-toggle {
+  display:flex; align-items:center; gap:6px; width:100%;
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:.72rem; color:var(--txt3); font-weight:700;
+  letter-spacing:.4px; padding:5px 4px; border-bottom:1px solid var(--line); margin-bottom:6px;
+  transition:color .15s; text-align:left;
+}
+.group-toggle:hover { color:var(--accent2); }
+.group-toggle .caret {
+  display:inline-block; font-size:.62rem; color:var(--accent);
+  transition:transform .15s; flex-shrink:0;
+}
+.group-block.collapsed .group-toggle .caret { transform:rotate(-90deg); }
+.group-block.collapsed .prod-list { display:none; }
+.group-block.active .group-toggle { color:var(--accent2); }
+.prod-list { display:flex; flex-direction:column; gap:3px; }
+.prod-btn {
+  text-align:left; background:var(--panel2); border:1px solid var(--line);
+  color:var(--txt2); border-radius:7px; padding:6px 9px;
+  font-size:.78rem; font-weight:600; cursor:pointer;
+  font-family:inherit; transition:all .12s;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.prod-btn:hover { border-color:var(--accent); color:#d4e4ff; background:#2c446b; }
+.prod-btn.active {
+  background:var(--accentbg); border-color:var(--accent); color:var(--accent2);
+  box-shadow:0 0 0 2px rgba(82,148,255,.22);
+  border-left:3px solid var(--accent2);
+}
+
+/* ===== 主区 ===== */
+.main { flex:1; display:flex; flex-direction:column; min-width:0; min-height:0; }
+
+.toolbar {
+  flex-shrink:0; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;
+  background:var(--panel); border-bottom:1px solid var(--line);
+  padding:10px 14px;
+}
+.control-group { display:flex; flex-direction:column; gap:5px; }
+.control-group label {
+  font-size:.7rem; color:var(--txt2); font-weight:600; letter-spacing:.4px;
+}
+.control-group input[type="date"], .control-group input[type="time"], .control-group select {
+  background:var(--panel2); border:1px solid var(--line2); color:var(--txt);
+  border-radius:8px; padding:8px 10px; font-size:.86rem;
+  font-family:inherit; outline:none; cursor:pointer; transition:border-color .2s;
+}
+.control-group input[type="date"]:hover, .control-group input[type="time"]:hover, .control-group select:hover { border-color:var(--accent); }
+.control-group input[type="date"]:focus, .control-group input[type="time"]:focus, .control-group select:focus {
+  border-color:var(--accent2); box-shadow:0 0 0 3px rgba(82,148,255,.18);
+}
+.control-group select:disabled {
+  opacity:.4; cursor:not-allowed; border-color:var(--line);
+}
+input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { filter:invert(.8); cursor:pointer; }
+.selected-count {
+  background:var(--accentbg); border:1px solid var(--accent); color:var(--accent2);
+  border-radius:8px; padding:8px 14px; font-size:.86rem; font-weight:700;
+  font-variant-numeric:tabular-nums; white-space:nowrap; align-self:flex-end;
+}
+.btn-go {
+  background:linear-gradient(135deg,#306ed8,#2458bc); color:#fff; border:none;
+  border-radius:8px; padding:9px 24px; font-size:.9rem; font-weight:600; cursor:pointer;
+  transition:all .2s; font-family:inherit; white-space:nowrap; align-self:flex-end;
+}
+.btn-go:hover {
+  background:linear-gradient(135deg,#4484ee,#306ed8);
+  transform:translateY(-1px); box-shadow:0 4px 12px rgba(82,148,255,.38);
+}
+
+.stepbar {
+  flex-shrink:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--panel); border-bottom:1px solid var(--line);
+  padding:8px 14px;
+}
+.step-info { flex:1; display:flex; align-items:center; gap:20px; flex-wrap:wrap; min-width:220px; }
+.step-info .item .label { font-size:.68rem; color:var(--txt3); }
+.step-info .item .value {
+  font-size:.9rem; font-weight:700; color:var(--accent2); font-variant-numeric:tabular-nums;
+}
+.nav-btns { display:flex; gap:8px; }
+.btn-nav {
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--panel2); color:var(--accent2); border:1px solid var(--line2);
+  border-radius:8px; padding:9px 16px; font-size:.82rem; font-weight:600;
+  cursor:pointer; transition:all .15s; font-family:inherit; user-select:none;
+}
+.btn-nav:hover:not(:disabled) {
+  background:var(--accentbg); border-color:var(--accent); color:#d4e4ff; transform:translateY(-1px);
+}
+.btn-nav:active:not(:disabled) { transform:translateY(0); }
+.btn-nav:disabled { opacity:.35; cursor:not-allowed; }
+.btn-nav.active { background:var(--accentbg); border-color:var(--accent); color:#d4e4ff; }
+.keyboard-hint { display:flex; gap:10px; align-items:center; margin-left:auto; }
+.keyboard-hint span { font-size:.66rem; color:var(--txt4); }
+.keyboard-hint kbd {
+  background:var(--panel2); border:1px solid var(--line2); border-radius:4px;
+  padding:1px 5px; font-size:.62rem; color:var(--txt3); font-family:inherit;
+}
+
+.progress-row {
+  flex-shrink:0; display:flex; gap:3px; padding:6px 14px 0; background:var(--panel);
+  overflow-x:auto; overflow-y:hidden; white-space:nowrap;
+}
+.progress-dot {
+  flex:0 0 14px; height:6px; background:var(--panel2); border-radius:3px;
+  cursor:pointer; transition:background .15s, transform .12s;
+}
+.progress-dot:hover { background:var(--accent); transform:scaleY(1.7); }
+.progress-dot.active { background:var(--accent2); }
+
+.timeline {
+  flex-shrink:0; background:var(--panel); border-bottom:1px solid var(--line);
+  padding:8px 14px 10px; display:flex; flex-direction:column; gap:6px;
+}
+.tl-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.tl-label { font-size:.72rem; font-weight:700; color:var(--accent2); letter-spacing:.4px; }
+.tl-current { font-size:.82rem; font-weight:700; color:#e8f1ff; font-variant-numeric:tabular-nums; }
+.tl-utc { font-size:.7rem; color:var(--txt3); font-variant-numeric:tabular-nums; }
+.tl-track { display:flex; align-items:center; gap:10px; }
+.tl-edge { flex:0 0 auto; font-size:.64rem; color:var(--txt4); font-variant-numeric:tabular-nums; }
+.tl-track input[type=range] {
+  flex:1; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px;
+  background:linear-gradient(90deg,var(--line2),var(--accentbg));
+  outline:none; cursor:pointer;
+}
+.tl-track input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#9cc4ff,#3f7fe0);
+  border:2px solid #1a2a45; box-shadow:0 0 0 2px rgba(82,148,255,.45), 0 2px 8px rgba(0,0,0,.5);
+  transition:transform .12s;
+}
+.tl-track input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.15); }
+.tl-track input[type=range]::-moz-range-thumb {
+  width:16px; height:16px; border-radius:50%; border:2px solid #1a2a45;
+  background:radial-gradient(circle at 35% 30%,#9cc4ff,#3f7fe0);
+  box-shadow:0 0 0 2px rgba(82,148,255,.45);
+}
+.tl-track input[type=range]:disabled { opacity:.35; cursor:not-allowed; }
+
+.url-strip {
+  flex-shrink:0; display:none; flex-wrap:wrap; gap:4px 14px;
+  padding:5px 14px 8px; background:var(--panel); border-bottom:1px solid var(--line);
+}
+.url-strip a {
+  color:var(--txt4); font-size:.62rem; word-break:break-all; text-decoration:none;
+  font-family:"Consolas",monospace; transition:color .2s; max-width:46%;
+}
+.url-strip a:hover { color:var(--accent2); }
+
+/* ===== 图片网格 ===== */
+.grid-area { flex:1; min-height:0; padding:8px 10px; display:flex; flex-direction:column; }
+.grid {
+  flex:1; min-height:0; display:none;
+  grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr);
+  gap:4px; transition:opacity .12s;
+}
+.grid.show { display:grid; }
+.grid.fade { opacity:0; }
+.grid-item {
+  position:relative; display:block; border:1px solid var(--line); border-radius:10px;
+  overflow:hidden; background:var(--panel2); text-decoration:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.22); transition:border-color .15s, box-shadow .15s;
+}
+.grid-item:hover { border-color:var(--accent); box-shadow:0 6px 20px rgba(82,148,255,.3); }
+.grid-item img { width:100%; height:100%; object-fit:contain; display:block; transition:opacity .18s; }
+.grid-item.white-bg { background:#fff; }
+.grid-item .badge {
+  position:absolute; top:6px; left:8px; display:flex; gap:6px; align-items:center;
+  pointer-events:none; flex-wrap:wrap;
+}
+.grid-item .close-btn {
+  position:absolute; top:6px; right:8px; z-index:3;
+  width:20px; height:20px; line-height:18px; text-align:center;
+  background:rgba(20,26,40,.85); border:1px solid rgba(255,255,255,.3);
+  color:#ffb4b4; border-radius:50%; font-size:.9rem; font-weight:700;
+  cursor:pointer; user-select:none; transition:all .15s;
+}
+.grid-item .close-btn:hover { background:rgba(239,68,68,.92); color:#fff; border-color:#fff; }
+.grid-item .badge span {
+  background:rgba(20,26,40,.82); border:1px solid rgba(82,148,255,.45);
+  color:var(--accent2); border-radius:6px; padding:2px 7px;
+  font-size:.7rem; font-weight:700; backdrop-filter:blur(2px); white-space:nowrap;
+}
+.grid-item .badge span.vt { color:var(--txt3); border-color:rgba(64,88,128,.6); font-weight:600; }
+.grid-item .cell-load, .grid-item .cell-err {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  padding:10px; text-align:center;
+}
+.grid-item .cell-load { color:var(--txt4); font-size:.74rem; }
+.grid-item .cell-err { background:rgba(20,26,40,.86); color:#ff8a8a; font-size:.8rem; }
+
+.empty-state {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; text-align:center; color:var(--txt3);
+}
+.empty-state svg.big-icon { opacity:.45; }
+.empty-state p { font-size:.9rem; }
+.empty-state p.sub { font-size:.76rem; color:var(--txt4); }
+
+.err-toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background:rgba(239,68,68,.94); color:#fff; border-radius:10px; padding:9px 16px;
+  font-size:.8rem; box-shadow:0 4px 20px rgba(0,0,0,.35); z-index:99;
+  opacity:0; transition:opacity .3s; pointer-events:none; max-width:92%; text-align:center;
+}
+.err-toast.show { opacity:1; }
+.loading-badge {
+  position:fixed; bottom:24px; right:16px;
+  background:rgba(28,34,48,.9); border:1px solid var(--line2); border-radius:20px;
+  padding:5px 12px; display:flex; align-items:center; gap:6px; font-size:.74rem; color:var(--txt3);
+  z-index:98; opacity:0; transition:opacity .25s; pointer-events:none;
+}
+.loading-badge.show { opacity:1; }
+.mini-spinner {
+  width:12px; height:12px; border:2px solid var(--panel2); border-top-color:var(--accent2);
+  border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media(max-width:1000px){
+  .app-body { flex-direction:column; }
+  .sidebar { width:100%; max-height:170px; }
+}
+</style>
+</head>
 <body>
-<h1 align="center">欢迎你来到情感小馆群务栏</h1>
+<header>
+  <span class="icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a0c8ff" stroke-width="1.6">
+      <circle cx="12" cy="12" r="9" opacity=".5"/>
+      <circle cx="12" cy="12" r="4.5" opacity=".4"/>
+      <circle cx="12" cy="12" r="1.4" fill="#a0c8ff" stroke="none"/>
+      <path d="M12 12 L19.5 7" opacity=".9"/>
+    </svg>
+  </span>
+  <div>
+    <h1>广东雷达图综合查询器</h1>
+    <p>区域相控阵 / BCGZ多产品 / 广东·华南拼图 · 单产品多时次 · 多产品对比 · 相控阵雷达产品请勿随意外传！</p>
+  </div>
+</header>
+<div class="app-body">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main">
+    <div class="toolbar">
+      <div class="control-group">
+        <label>日期（北京时间）</label>
+        <input type="date" id="dateInput" />
+      </div>
+      <div class="control-group">
+        <label>时间（北京时间）</label>
+        <input type="time" id="timeInput" step="60" />
+      </div>
+      <div class="control-group">
+        <label>时间间隔（分钟）</label>
+        <select id="intervalSelect">
+          <option value="1" selected>1 分钟</option>
+          <option value="3">3 分钟</option>
+          <option value="5">5 分钟</option>
+          <option value="6">6 分钟</option>
+          <option value="10">10 分钟</option>
+          <option value="30">30 分钟</option>
+          <option value="60">60 分钟</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>显示模式</label>
+        <select id="modeSelect">
+          <option value="single" selected>单产品 · 多时次</option>
+          <option value="multi">多产品 · 同时对比</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>同时显示（张）</label>
+        <select id="gridSizeSelect">
+          <option value="1">1 张</option>
+          <option value="2">2 张</option>
+          <option value="4" selected>4 张</option>
+          <option value="6">6 张</option>
+          <option value="8">8 张</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>已选产品</label>
+        <div class="selected-count" id="selectedCount">1 个</div>
+      </div>
+      <button class="btn-go" id="btnGo">▶ 加载</button>
+    </div>
+    <div class="stepbar">
+      <div class="step-info">
+        <div class="item"><div class="label" id="info1Label">当前时次</div><div class="value" id="info1Value">—</div></div>
+        <div class="item"><div class="label" id="info2Label">UTC</div><div class="value" id="info2Value">—</div></div>
+        <div class="item"><div class="label" id="info3Label">序号</div><div class="value" id="info3Value">—</div></div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-nav" id="btnPrev">◀ <span id="prevLabel">上一批</span></button>
+        <button class="btn-nav" id="btnNext"><span id="nextLabel">下一批</span> ▶</button>
+      </div>
+      <div class="nav-btns">
+        <button class="btn-nav" id="btnPlay">
+          <span id="playIcon" class="play-ico"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 1 L10 6 L2 11 Z" fill="currentColor"/></svg></span>
+          <span id="playLabel">播放</span>
+        </button>
+      </div>
+      <div class="keyboard-hint">
+        <span><kbd>←</kbd> <span id="hintPrev">上一批</span></span>
+        <span><kbd>→</kbd> <span id="hintNext">下一批</span></span>
+        <span><kbd>空格</kbd> 播放/暂停</span>
+      </div>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="tl-head">
+        <span class="tl-label">时次轴 · 可拖动</span>
+        <span class="tl-current" id="tlCurrent">—</span>
+        <span class="tl-utc" id="tlUtc">—</span>
+      </div>
+      <div class="tl-track">
+        <span class="tl-edge" id="tlMin">—</span>
+        <input type="range" id="timeSlider" min="0" max="0" value="0" step="1" aria-label="拖动查看时次" />
+        <span class="tl-edge" id="tlMax">—</span>
+      </div>
+    </div>
+    <div class="progress-row" id="progressRow"></div>
+    <div class="url-strip" id="urlStrip"></div>
+    <div class="grid-area">
+      <div class="empty-state" id="emptyState">
+        <svg class="big-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="9" opacity=".6"/>
+          <circle cx="12" cy="12" r="4.5" opacity=".5"/>
+          <path d="M12 1.5 V6 M12 18 V22.5 M1.5 12 H6 M18 12 H22.5" opacity=".6"/>
+          <path d="M12 12 L20 4.5" opacity=".8"/>
+          <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>
+        </svg>
+        <p id="emptyMain">选择产品与时间，点击加载查看雷达图</p>
+        <p class="sub" id="emptySub">单产品模式：同屏显示该产品 1/2/4/6/8 个连续时次；多产品模式：选中几个产品就同屏对比几张；加载后可用下方时次轴拖动查看</p>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </main>
+</div>
+<div class="loading-badge" id="loadingBadge">
+  <div class="mini-spinner"></div><span>加载中…</span>
+</div>
+<div class="err-toast" id="errToast"></div>
+<script>
+/* ===================== 产品定义（合并三个原查询器） ===================== */
+const OSS = "https://oss.windbells.cn";
+const LDAD = "https://ldadapp.bj-bmic.cn/proxy/10.224.97.148/proxy/10.1.64.154/art/proxy/10.40.132.153/BCGZ";
+const GDF = "https://www.gdfltq.cn/ProductFile";
+
+// —— 组1：区域雷达拼图（北京时间直用，1分钟）——
+const REGION = [
+  {id:"gd_dwq",   label:"大湾区雷达拼图",       minI:1, url:c=>`${OSS}/radar/gd_dwq/full/${c.bj.ymd}/radar_gd_dwq_full_${c.bj.ymdhm}.png`},
+  {id:"xkzld_gz", label:"广州全市相控阵细雷达", minI:1, url:c=>`${OSS}/radar/xkzld_gz/guangzhou/${c.bj.ymd}/radar_xkzld_gz_guangzhou_${c.bj.ymdhm}.png`},
+  {id:"thyx",     label:"越秀天河雷达",         minI:1, url:c=>`${OSS}/radar/xkzld_thyx/thyx/${c.bj.ymd}/radar_xkzld_thyx_thyx_${c.bj.ymdhm}.png`},
+  {id:"haizhu",   label:"海珠雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_hz/haizhu/${c.bj.ymd}/radar_xkzld_hz_haizhu_${c.bj.ymdhm}.png`},
+  {id:"liwan",    label:"荔湾雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_lw/liwan/${c.bj.ymd}/radar_xkzld_lw_liwan_${c.bj.ymdhm}.png`},
+  {id:"baiyun",   label:"白云雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_by/baiyun/${c.bj.ymd}/radar_xkzld_by_baiyun_${c.bj.ymdhm}.png`},
+  {id:"huadu",    label:"花都雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_hd/huadu/${c.bj.ymd}/radar_xkzld_hd_huadu_${c.bj.ymdhm}.png`},
+  {id:"conghua",  label:"从化雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_ch/conghua/${c.bj.ymd}/radar_xkzld_ch_conghua_${c.bj.ymdhm}.png`},
+  {id:"zengcheng",label:"增城雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_zc/zengcheng/${c.bj.ymd}/radar_xkzld_zc_zengcheng_${c.bj.ymdhm}.png`},
+  {id:"huangpu",  label:"黄埔雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_hp/huangpu/${c.bj.ymd}/radar_xkzld_hp_huangpu_${c.bj.ymdhm}.png`},
+  {id:"panyu",    label:"番禺雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_py/panyu/${c.bj.ymd}/radar_xkzld_py_panyu_${c.bj.ymdhm}.png`},
+  {id:"nansha",   label:"南沙雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_ns/nansha/${c.bj.ymd}/radar_xkzld_ns_nansha_${c.bj.ymdhm}.png`}
+];
+
+// —— 组2：广州相控阵 BCGZ 多产品（北京时间自动转 UTC，1分钟）——
+function ldadProd(id, label, sub, tail){
+  return {id, label, minI:1, utc:true, flaky:true, url:c=>`${LDAD}/${sub}/${c.utc.y}/${c.utc.ymd}/Z_RADR_C_BCGZ_${c.utc.ymdhm}00_P_DOR_DXK_GD_${tail}.png`};
+}
+const BCGZ = [
+  {id:"bcgz_cr_oss", label:"组合反射率 CR（oss镜像）", minI:1, utc:true, url:c=>`${OSS}/radar/${c.utc.y}/${c.utc.ymd}/${c.utc.hh}/Z_RADR_C_BCGZ_${c.utc.ymdhm}00_P_DOR_DXK_GD_CR.png`},
+  ldadProd("bcgz_cr",     "组合反射率 CR",           "CR",  "CR"),
+  ldadProd("bcgz_ohp",    "一小时雨量累积 OHP",      "OHP", "OHP"),
+  ldadProd("bcgz_z1500",  "反射率 Z_1500米",         "Z",   "CAPPI_Z_1500"),
+  ldadProd("bcgz_z2500",  "反射率 Z_2500米",         "Z",   "CAPPI_Z_2500"),
+  ldadProd("bcgz_w1500",  "三维风场 WIND_1500米",    "WIN", "CAPPI_WIND_1500"),
+  ldadProd("bcgz_w2500",  "三维风场 WIND_2500米",    "WIN", "CAPPI_WIND_2500"),
+  ldadProd("bcgz_kdp1500","差分相移率 KDP_1500米",   "KDP", "CAPPI_KDP_1500"),
+  ldadProd("bcgz_kdp2500","差分相移率 KDP_2500米",   "KDP", "CAPPI_KDP_2500"),
+  ldadProd("bcgz_zdr1500","差分反射率 ZDR_1500米",   "ZDR", "CAPPI_ZDR_1500"),
+  ldadProd("bcgz_zdr2500","差分反射率 ZDR_2500米",   "ZDR", "CAPPI_ZDR_2500")
+];
+
+// —— 组3：广东 / 华南 / 新版广东雷达拼图（6分钟一张）——
+function mosaicProd(id, label, key){
+  return {id, label, minI:6, url:c=>{
+    const mm = Math.floor(c.bj.mi / 6) * 6;
+    return `${GDF}/${key}/${c.bj.ymd}/${key}_${c.bj.ymd}${c.bj.hh}${pad(mm)}.png`;
+  }};
+}
+// 新版广东雷达拼图：文件名采用 UTC 时间（北京时间 -8h），6分钟一张，.gif
+// 源站对未发布时次偶发返回错误页（浏览器拦截），标记 flaky 启用重试穿透
+function newMosaicProd(id, label){
+  return {id, label, minI:6, utc:true, flaky:true, url:c=>{
+    const u = c.utc;
+    const mm = Math.floor(u.mi / 6) * 6;
+    return `https://www.gdfltq.cn:8080/file/${u.ymd}/mor${u.ymd}${u.hh}${pad(mm)}.gif`;
+  }};
+}
+// 新版广东雷达拼图（备用镜像 zjqxfw.cn）：同样 UTC 时间命名，6分钟一张，更新更快
+// 该镜像图只有回波层（底图透明），whiteBg 用纯白背景显示
+function newMosaicBakProd(id, label){
+  return {id, label, minI:6, utc:true, flaky:true, whiteBg:true, url:c=>{
+    const u = c.utc;
+    const mm = Math.floor(u.mi / 6) * 6;
+    return `https://www.zjqxfw.cn/dataCache/radar/${u.ymd}/mor${u.ymd}${u.hh}${pad(mm)}.gif`;
+  }};
+}
+const MOSAIC = [
+  mosaicProd("gdspz", "广东雷达拼图 GDSPZ", "GDSPZ"),
+  mosaicProd("hnspz", "华南雷达拼图 HNSPZ", "HNSPZ"),
+  newMosaicProd("gdnew", "新版广东雷达拼图"),
+  newMosaicBakProd("gdbak", "新版广东雷达拼图（备用）")
+];
+
+const GROUPS = [
+  {id:"region", short:"区域", title:"区域雷达拼图 · 1分钟 · 北京时间", items:REGION},
+  {id:"bcgz",   short:"BCGZ", title:"广州相控阵 BCGZ · 1分钟 · 北京→UTC", items:BCGZ},
+  {id:"mosaic", short:"拼图", title:"广东 / 华南 / 新版广东雷达拼图（含备用） · 6分钟", items:MOSAIC}
+];
+const ALL = REGION.concat(BCGZ, MOSAIC);
+const map = Object.fromEntries(ALL.map(p => [p.id, p]));
+
+/* ===================== 时间工具 ===================== */
+function pad(n, len = 2){ return String(n).padStart(len, "0"); }
+function getInputTs(){
+  const d = document.getElementById("dateInput").value;
+  const t = document.getElementById("timeInput").value;
+  const [y, mo, dd] = d.split("-").map(Number);
+  const tp = t.split(":").map(Number);
+  return Date.UTC(y, mo - 1, dd, tp[0], tp[1] || 0, tp[2] || 0);
+}
+function bjParts(ts){
+  const d = new Date(ts);
+  return {y:d.getUTCFullYear(), mo:d.getUTCMonth()+1, dd:d.getUTCDate(), h:d.getUTCHours(), mi:d.getUTCMinutes()};
+}
+function utcParts(ts){
+  const d = new Date(ts - 8*3600e3);
+  return {y:d.getUTCFullYear(), mo:d.getUTCMonth()+1, dd:d.getUTCDate(), h:d.getUTCHours(), mi:d.getUTCMinutes()};
+}
+function fmt(p){
+  return {
+    ymd:`${p.y}${pad(p.mo)}${pad(p.dd)}`,
+    ymdhm:`${p.y}${pad(p.mo)}${pad(p.dd)}${pad(p.h)}${pad(p.mi)}`,
+    hh:pad(p.h)
+  };
+}
+function nowBjTs(){
+  const bj = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Shanghai"}));
+  return Date.UTC(bj.getFullYear(), bj.getMonth(), bj.getDate(), bj.getHours(), bj.getMinutes());
+}
+function writeInput(ts){
+  const b = bjParts(ts);
+  document.getElementById("dateInput").value = `${b.y}-${pad(b.mo)}-${pad(b.dd)}`;
+  document.getElementById("timeInput").value = `${pad(b.h)}:${pad(b.mi)}`;
+}
+function snapTs(ts, minI){
+  if(!minI || minI <= 1) return ts;
+  const b = bjParts(ts);
+  return Date.UTC(b.y, b.mo - 1, b.dd, b.h, Math.floor(b.mi / minI) * minI);
+}
+function ctxOf(ts){
+  const bjP = bjParts(ts), utcP = utcParts(ts);
+  return {
+    bj:  Object.assign(fmt(bjP),  {y:bjP.y, mo:bjP.mo, dd:bjP.dd, h:bjP.h,  mi:bjP.mi}),
+    utc: Object.assign(fmt(utcP), {y:utcP.y, mo:utcP.mo, dd:utcP.dd, h:utcP.h, mi:utcP.mi})
+  };
+}
+function bjClockShort(ts){ const b = bjParts(ts); return `${pad(b.mo)}-${pad(b.dd)} ${pad(b.h)}:${pad(b.mi)}`; }
+function utcClockShort(ts){ const u = utcParts(ts); return `${pad(u.mo)}-${pad(u.dd)} ${pad(u.h)}:${pad(u.mi)}`; }
+function bjClockFull(ts){ const b = bjParts(ts); return `${b.y}-${pad(b.mo)}-${pad(b.dd)} ${pad(b.h)}:${pad(b.mi)}`; }
+function utcClockFull(ts){ const u = utcParts(ts); return `${u.y}-${pad(u.mo)}-${pad(u.dd)} ${pad(u.h)}:${pad(u.mi)}`; }
+
+/* ===================== 状态 ===================== */
+let mode       = "single";
+let selected   = [{g:"region", p:REGION[0]}];
+let gridSize   = 4;
+let interval   = 1;
+let frames     = [];
+let currentIdx = 0;
+let currentPage = 0;
+let hiddenFrames = new Set();
+let loadSerial = 0;
+let playTimer = null;
+let playing = false;
+
+function layoutFor(n){
+  if(n <= 1) return {cols:1, rows:1};
+  if(n <= 2) return {cols:2, rows:1};
+  if(n <= 4) return {cols:2, rows:2};
+  if(n <= 6) return {cols:3, rows:2};
+  if(n <= 8) return {cols:4, rows:2};
+  return {cols:5, rows:2};
+}
+
+/* ===================== 侧边栏 ===================== */
+function buildSidebar(){
+  const wrap = document.getElementById("sidebar");
+  wrap.innerHTML = "";
+  const hint = document.createElement("div");
+  hint.className = "sel-hint";
+  hint.id = "selHint";
+  wrap.appendChild(hint);
+  const clearBtn = document.createElement("button");
+  clearBtn.className = "clear-btn";
+  clearBtn.textContent = "× 清空已选产品";
+  clearBtn.onclick = clearSelection;
+  wrap.appendChild(clearBtn);
+  GROUPS.forEach((g, gi) => {
+    const block = document.createElement("div");
+    block.className = "group-block";
+    block.dataset.group = g.id;
+    const title = document.createElement("button");
+    title.type = "button";
+    title.className = "group-toggle";
+    title.innerHTML = `<span class="caret">▾</span>${g.title}`;
+    title.onclick = () => block.classList.toggle("collapsed");
+    const list = document.createElement("div");
+    list.className = "prod-list";
+    g.items.forEach(p => {
+      const b = document.createElement("button");
+      b.className = "prod-btn";
+      b.textContent = p.label;
+      b.onclick = () => toggleProduct(g.id, p);
+      list.appendChild(b);
+    });
+    block.appendChild(title);
+    block.appendChild(list);
+    wrap.appendChild(block);
+  });
+  updateSidebar();
+}
+function toggleProduct(gid, prod){
+  if(mode === "single"){
+    selected = [{g:gid, p:prod}];
+  }else{
+    const idx = selected.findIndex(x => x.g === gid && x.p.id === prod.id);
+    if(idx >= 0){
+      if(selected.length > 1) selected.splice(idx, 1);
+      else return;
+    }else{
+      selected.push({g:gid, p:prod});
+    }
+  }
+  updateSidebar();
+  if(frames.length) renderGrid();
+}
+function updateSidebar(){
+  document.querySelectorAll(".group-block").forEach(g => g.classList.remove("active"));
+  document.querySelectorAll(".prod-btn").forEach(b => b.classList.remove("active"));
+  selected.forEach(sel => {
+    const block = document.querySelector(`.group-block[data-group="${sel.g}"]`);
+    if(!block) return;
+    block.classList.add("active");
+    const items = GROUPS.find(g => g.id === sel.g).items;
+    const idx = items.findIndex(x => x.id === sel.p.id);
+    const btns = block.querySelectorAll(".prod-btn");
+    if(btns[idx]) btns[idx].classList.add("active");
+  });
+  document.getElementById("selectedCount").textContent =
+    selected.length === 0 ? "0 个" : (mode === "single" ? "1 个" : `${selected.length} 个（同屏 ${selected.length} 张）`);
+  const hint = document.getElementById("selHint");
+  if(selected.length === 0){
+    hint.textContent = "已清空。请点击左侧选择至少 1 个产品后再加载。";
+  }else if(mode === "single"){
+    hint.textContent = "单产品·多时次：同屏显示该产品 1/2/4/6/8 个连续时次；加载自动回退到最新可用时次（雷达图延迟数分钟发布）；下方时次轴可拖动查看。";
+  }else{
+    hint.textContent = "多产品·对比：点选多个产品同屏对比（可跨组混选）；广东/华南拼图自动按 6 分钟对齐；下方时次轴可拖动查看。";
+  }
+}
+function clearSelection(){
+  stopPlay();
+  selected = [];
+  frames = [];
+  currentIdx = 0;
+  currentPage = 0;
+  hiddenFrames = new Set();
+  document.getElementById("progressRow").innerHTML = "";
+  const strip = document.getElementById("urlStrip");
+  strip.style.display = "none";
+  strip.innerHTML = "";
+  setStepbar("当前时次", "—", "UTC", "—", "序号", "—");
+  const grid = document.getElementById("grid");
+  grid.classList.remove("show");
+  grid.innerHTML = "";
+  showEmpty("已清空选择", "请在左侧重新选择产品后点击加载");
+  syncSlider();
+  updateSidebar();
+}
+
+/* ===================== 时次序列与导航 ===================== */
+function rebuildFrames(baseTs){
+  const base = (baseTs !== undefined) ? baseTs : getInputTs();
+  const maxMinI = selected.reduce((m, s) => Math.max(m, s.p.minI || 1), 1);
+  if(mode === "single" && selected.length && selected[0].p.minI > interval){
+    interval = selected[0].p.minI;
+    document.getElementById("intervalSelect").value = String(interval);
+  }
+  // 多产品混选时按最大最小间隔对齐（如拼图 6 分钟 + 相控阵 1 分钟 → 统一 6 分钟一帧）
+  const itv = Math.max(interval, maxMinI);
+  const now = nowBjTs();
+  let total = Math.floor((now - base) / (itv * 60e3)) + 1;
+  if(total < 1) total = 1;
+  if(total > 2000) total = 2000;
+  frames = [];
+  for(let i = 0; i < total; i++) frames.push(base + i * itv * 60e3);
+  currentIdx = 0;
+  currentPage = 0;
+  hiddenFrames = new Set();
+}
+let probeSeq = 0;
+const knownGood = new Set();
+function probeImage(url){
+  if(knownGood.has(url)) return Promise.resolve(true);
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => { knownGood.add(url); res(true); };
+    img.onerror = () => res(false);
+    img.src = url;
+  });
+}
+// LDAD 官方代理偶发把“未发布”响应缓存成 HTML（浏览器会拦截），用时间戳参数穿透缓存重试
+function fetchUrl(prod, ctx, buster){
+  const u = prod.url(ctx);
+  if(!prod.flaky || !buster) return u;
+  return u + (u.includes("?") ? "&" : "?") + "b=" + buster;
+}
+function attachCellImg(item, prod, ctx, serial, pendingRef){
+  let tries = 0;
+  const done = () => { if(--pendingRef.n <= 0) showBadge(false); };
+  const fail = () => {
+    const err = document.createElement("div");
+    err.className = "cell-err";
+    err.textContent = "该时次暂无图片\n雷达图通常延迟数分钟发布";
+    item.appendChild(err);
+    done();
+  };
+  const attempt = () => {
+    if(serial !== loadSerial) return;
+    const b = tries > 0 ? Date.now() + "-" + tries : "";
+    const u = fetchUrl(prod, ctx, b);
+    item._img.onload = () => {
+      if(serial !== loadSerial) return;
+      if(tries === 0) knownGood.add(u);
+      item._loadDiv.remove();
+      item._img.style.opacity = "1";
+      done();
+    };
+    item._img.onerror = () => {
+      if(serial !== loadSerial) return;
+      if(prod.flaky && tries < 2){ tries++; setTimeout(attempt, 600); return; }
+      fail();
+    };
+    item._img.src = u;
+  };
+  attempt();
+}
+// 向后回退探测：雷达图延迟数分钟发布（广东/华南拼图延迟可达 1 小时以上），
+// 自动找到所选时间之前最新可用的时次
+async function probeLatestBase(){
+  const startTs = getInputTs();
+  if(mode === "single"){
+    const prod = selected[0].p;
+    const step = Math.max(1, prod.minI || 1);
+    const maxBack = (prod.minI || 1) >= 6 ? 120 : 40;
+    const maxSteps = Math.floor(maxBack / step);
+    for(let i = 0; i <= maxSteps; i++){
+      const ts = startTs - i * step * 60e3;
+      const eff = snapTs(ts, prod.minI);
+      if(await probeImage(fetchUrl(prod, ctxOf(eff), Date.now() + "-p" + i))) return eff;
+    }
+    return startTs;
+  }
+  const probed = new Map(); // url -> 是否成功（失败的继续视为失败，不能跳过当通过）
+  for(let i = 0; i <= 40; i++){
+    const ts = startTs - i * 60e3;
+    let allOk = true;
+    for(const sel of selected){
+      const eff = snapTs(ts, sel.p.minI);
+      const url = fetchUrl(sel.p, ctxOf(eff), Date.now() + "-m" + i);
+      if(probed.has(url)){
+        if(!probed.get(url)){ allOk = false; break; }
+        continue;
+      }
+      const ok = await probeImage(url);
+      probed.set(url, ok);
+      if(!ok){ allOk = false; break; }
+    }
+    if(allOk){
+      // 统一回收到最大间隔的整数倍，保证帧标签与各产品 URL 时次对齐
+      const step = Math.max(1, ...selected.map(s => s.p.minI || 1));
+      return snapTs(ts, step);
+    }
+  }
+  return snapTs(startTs, Math.max(1, ...selected.map(s => s.p.minI || 1)));
+}
+async function loadSeries(){
+  if(!selected.length){ showErr("请先在左侧选择产品"); return; }
+  stopPlay();
+  const my = ++probeSeq;
+  showBadge(true);
+  const base = await probeLatestBase();
+  if(my !== probeSeq) return;
+  rebuildFrames(base);
+  buildProgressDots();
+  renderGrid();
+  showBadge(false);
+}
+function pageCount(){
+  return Math.max(1, Math.ceil(frames.length / gridSize));
+}
+function navigate(dir){
+  if(!frames.length) return;
+  if(mode === "single"){
+    const next = currentPage + dir;
+    if(next < 0 || next >= pageCount()) return;
+    currentPage = next;
+    renderGrid();
+  }else{
+    const next = currentIdx + dir;
+    if(next < 0 || next >= frames.length) return;
+    currentIdx = next;
+    renderGrid();
+  }
+}
+function buildProgressDots(){
+  const row = document.getElementById("progressRow");
+  row.innerHTML = "";
+  const n = mode === "single" ? pageCount() : frames.length;
+  for(let i = 0; i < n; i++){
+    const dot = document.createElement("div");
+    const active = mode === "single" ? (i === currentPage) : (i === currentIdx);
+    dot.className = "progress-dot" + (active ? " active" : "");
+    if(mode === "single") dot.title = `第 ${i+1} 批`;
+    else dot.title = bjClockShort(frames[i]);
+    dot.addEventListener("click", () => {
+      if(mode === "single"){ currentPage = i; renderGrid(); }
+      else{ currentIdx = i; renderGrid(); }
+    });
+    row.appendChild(dot);
+  }
+}
+function updateProgressDots(){
+  document.querySelectorAll(".progress-dot").forEach((d, i) => {
+    const active = mode === "single" ? (i === currentPage) : (i === currentIdx);
+    d.classList.toggle("active", active);
+  });
+}
+function setStepbar(l1, v1, l2, v2, l3, v3){
+  document.getElementById("info1Label").textContent = l1;
+  document.getElementById("info1Value").textContent = v1;
+  document.getElementById("info2Label").textContent = l2;
+  document.getElementById("info2Value").textContent = v2;
+  document.getElementById("info3Label").textContent = l3;
+  document.getElementById("info3Value").textContent = v3;
+}
+
+/* ===================== 时次轴（可拖动进度条） ===================== */
+function sliderIndex(){
+  return mode === "single" ? currentPage * gridSize : currentIdx;
+}
+function setTlLabels(ts){
+  const t1 = document.getElementById("tlMin");
+  const t2 = document.getElementById("tlMax");
+  const tc = document.getElementById("tlCurrent");
+  const tu = document.getElementById("tlUtc");
+  t1.textContent = frames.length ? bjClockShort(frames[0]) : "—";
+  t2.textContent = frames.length ? bjClockShort(frames[frames.length - 1]) : "—";
+  tc.textContent = ts ? `北京 ${bjClockFull(ts)}` : "—";
+  tu.textContent = ts ? `UTC ${utcClockFull(ts)}` : "—";
+}
+function syncSlider(){
+  const s = document.getElementById("timeSlider");
+  if(!frames.length){
+    s.disabled = true; s.min = 0; s.max = 0; s.value = 0;
+    setTlLabels(null);
+    return;
+  }
+  s.disabled = false;
+  s.min = 0;
+  s.max = frames.length - 1;
+  const v = Math.min(Math.max(sliderIndex(), 0), frames.length - 1);
+  s.value = v;
+  setTlLabels(frames[v]);
+}
+
+/* ===================== 单元格构建 ===================== */
+function makeCell(prod, ts, ctx, opts){
+  const url = prod.url(ctx);
+  const item = document.createElement("a");
+  item.className = "grid-item";
+  item.href = url; item.target = "_blank"; item.title = "新标签打开原图";
+  const loadDiv = document.createElement("div");
+  loadDiv.className = "cell-load";
+  loadDiv.textContent = "加载中…";
+  item.appendChild(loadDiv);
+  const img = document.createElement("img");
+  img.alt = url;
+  img.style.opacity = "0";
+  item.appendChild(img);
+  if(prod.whiteBg) item.classList.add("white-bg"); // 透明底图产品用纯白背景
+  const badge = document.createElement("div");
+  badge.className = "badge";
+  const sp1 = document.createElement("span");
+  sp1.textContent = prod.label;
+  const sp2 = document.createElement("span");
+  sp2.className = "vt";
+  sp2.textContent = `北京 ${bjClockShort(ts)} · UTC ${utcClockShort(ts)}`;
+  badge.appendChild(sp1);
+  badge.appendChild(sp2);
+  item.appendChild(badge);
+  if(opts && opts.closable){
+    const close = document.createElement("span");
+    close.className = "close-btn";
+    close.textContent = "×";
+    close.title = "关闭这一张";
+    close.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      hiddenFrames.add(ts);
+      if(opts.serial === loadSerial) renderGrid();
+    };
+    item.appendChild(close);
+  }
+  item._loadDiv = loadDiv;
+  item._img = img;
+  return item;
+}
+
+/* ===================== 渲染 ===================== */
+function renderGrid(){
+  if(!frames.length){ showEmpty("无时次序列", "请检查日期时间后重新加载"); syncSlider(); return; }
+  const serial = ++loadSerial;
+  if(mode === "single") renderSingle(serial);
+  else renderMulti(serial);
+  syncSlider();
+}
+
+function renderSingle(serial){
+  const sel = selected[0];
+  const prod = sel.p;
+  const pages = pageCount();
+  if(currentPage >= pages) currentPage = pages - 1;
+  if(currentPage < 0) currentPage = 0;
+  const start = currentPage * gridSize;
+  const vis = [];
+  for(let i = start; i < frames.length && vis.length < gridSize; i++){
+    if(!hiddenFrames.has(frames[i])) vis.push(frames[i]);
+  }
+  document.getElementById("prevLabel").textContent = "上一批";
+  document.getElementById("nextLabel").textContent = "下一批";
+  document.getElementById("hintPrev").textContent = "上一批";
+  document.getElementById("hintNext").textContent = "下一批";
+  document.getElementById("btnPrev").disabled = currentPage === 0;
+  document.getElementById("btnNext").disabled = currentPage >= pages - 1;
+  updateProgressDots();
+
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("emptyState");
+  const strip = document.getElementById("urlStrip");
+
+  if(!vis.length){
+    setStepbar("当前时次", "—", "UTC", "—", "序号", `${currentPage+1} / ${pages}`);
+    strip.style.display = "none";
+    strip.innerHTML = "";
+    grid.classList.remove("show");
+    grid.innerHTML = "";
+    showEmpty("该批时次均已关闭", "点击“清空已选产品”或重新加载可恢复");
+    return;
+  }
+
+  const t0 = bjClockFull(vis[0]);
+  const t1 = bjClockFull(vis[vis.length - 1]);
+  setStepbar("时次范围（北京）", vis.length > 1 ? `${t0} ～ ${t1}` : t0,
+             "UTC", vis.length > 1 ? `${utcClockFull(vis[0])} ～ ${utcClockFull(vis[vis.length-1])}` : utcClockFull(vis[0]),
+             "序号", `${start + 1} ~ ${Math.min(start + vis.length, frames.length)} / ${frames.length}`);
+
+  strip.style.display = "flex";
+  strip.innerHTML = "";
+  vis.forEach(ts => {
+    const a = document.createElement("a");
+    const url = prod.url(ctxOf(ts));
+    a.href = url; a.target = "_blank"; a.title = url;
+    a.textContent = bjClockShort(ts);
+    strip.appendChild(a);
+  });
+
+  const {cols, rows} = layoutFor(vis.length);
+  empty.style.display = "none";
+  grid.classList.add("fade");
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  grid.classList.add("show");
+  showBadge(true);
+  const pending = {n: 0};
+  vis.forEach(ts => {
+    const ctx = ctxOf(ts);
+    const item = makeCell(prod, ts, ctx, {closable:true, serial});
+    grid.appendChild(item);
+    pending.n++;
+    attachCellImg(item, prod, ctx, serial, pending);
+  });
+  requestAnimationFrame(() => { if(serial === loadSerial) grid.classList.remove("fade"); });
+}
+
+function renderMulti(serial){
+  const ts = frames[currentIdx];
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("emptyState");
+  const strip = document.getElementById("urlStrip");
+  document.getElementById("prevLabel").textContent = "上一时次";
+  document.getElementById("nextLabel").textContent = "下一时次";
+  document.getElementById("hintPrev").textContent = "上一时次";
+  document.getElementById("hintNext").textContent = "下一时次";
+  document.getElementById("btnPrev").disabled = currentIdx === 0;
+  document.getElementById("btnNext").disabled = currentIdx >= frames.length - 1;
+  updateProgressDots();
+
+  setStepbar("当前时次（北京）", bjClockFull(ts), "UTC", utcClockFull(ts),
+             "序号", `${currentIdx + 1} / ${frames.length}`);
+
+  strip.style.display = "flex";
+  strip.innerHTML = "";
+  selected.forEach(sel => {
+    const effTs = snapTs(ts, sel.p.minI);
+    const url = sel.p.url(ctxOf(effTs));
+    const a = document.createElement("a");
+    a.href = url; a.target = "_blank"; a.title = url;
+    const g = GROUPS.find(x => x.id === sel.g);
+    a.textContent = `${selected.length > 1 ? g.short + " · " : ""}${sel.p.label} ${bjClockShort(effTs)}`;
+    strip.appendChild(a);
+  });
+
+  const {cols, rows} = layoutFor(selected.length);
+  empty.style.display = "none";
+  grid.classList.add("fade");
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  grid.classList.add("show");
+  showBadge(true);
+  const pending = {n: 0};
+  selected.forEach(sel => {
+    const effTs = snapTs(ts, sel.p.minI);
+    const ctx = ctxOf(effTs);
+    const item = makeCell(sel.p, effTs, ctx, {closable:false});
+    grid.appendChild(item);
+    pending.n++;
+    attachCellImg(item, sel.p, ctx, serial, pending);
+  });
+  requestAnimationFrame(() => { if(serial === loadSerial) grid.classList.remove("fade"); });
+}
+
+function showEmpty(mainTxt, subTxt){
+  const empty = document.getElementById("emptyState");
+  const grid = document.getElementById("grid");
+  empty.style.display = "flex";
+  document.getElementById("emptyMain").textContent = mainTxt;
+  document.getElementById("emptySub").textContent = subTxt;
+  grid.classList.remove("show");
+}
+
+/* ===================== 播放 / 提示 / 错误 ===================== */
+const ICON_PLAY = '<svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 1 L10 6 L2 11 Z" fill="currentColor"/></svg>';
+const ICON_PAUSE = '<svg width="11" height="11" viewBox="0 0 12 12"><rect x="2" y="1" width="3" height="10" fill="currentColor"/><rect x="7" y="1" width="3" height="10" fill="currentColor"/></svg>';
+function updatePlayBtn(){
+  const lab = document.getElementById("playLabel");
+  const ico = document.getElementById("playIcon");
+  const btn = document.getElementById("btnPlay");
+  if(lab) lab.textContent = playing ? "暂停" : "播放";
+  if(ico) ico.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+  if(btn) btn.classList.toggle("active", playing);
+}
+function stopPlay(){
+  playing = false;
+  clearInterval(playTimer);
+  playTimer = null;
+  updatePlayBtn();
+}
+function togglePlay(){
+  if(!frames.length){ showErr("请先加载时次"); return; }
+  if(playing){ stopPlay(); return; }
+  playing = true;
+  updatePlayBtn();
+  playTimer = setInterval(() => {
+    if(mode === "single"){
+      if(currentPage >= pageCount() - 1){ stopPlay(); return; }
+      navigate(1);
+    }else{
+      if(currentIdx >= frames.length - 1){ stopPlay(); return; }
+      navigate(1);
+    }
+  }, 1800);
+}
+
+let badgeTimer = null;
+function showBadge(on){
+  const el = document.getElementById("loadingBadge");
+  clearTimeout(badgeTimer);
+  if(on) el.classList.add("show");
+  else badgeTimer = setTimeout(() => el.classList.remove("show"), 200);
+}
+let toastTimer = null;
+function showErr(msg){
+  const el = document.getElementById("errToast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+}
+
+/* ===================== 事件 ===================== */
+document.getElementById("btnGo").addEventListener("click", loadSeries);
+document.getElementById("timeSlider").addEventListener("input", e => {
+  const v = Number(e.target.value);
+  if(frames.length && frames[v]) setTlLabels(frames[v]);
+});
+document.getElementById("timeSlider").addEventListener("change", e => {
+  if(!frames.length) return;
+  const v = Number(e.target.value);
+  stopPlay();
+  if(mode === "single"){
+    currentPage = Math.floor(v / gridSize);
+    if(currentPage >= pageCount()) currentPage = pageCount() - 1;
+    if(currentPage < 0) currentPage = 0;
+    renderGrid();
+  }else{
+    currentIdx = Math.min(v, frames.length - 1);
+    renderGrid();
+  }
+});
+document.getElementById("btnPrev").addEventListener("click", () => navigate(-1));
+document.getElementById("btnNext").addEventListener("click", () => navigate(1));
+document.getElementById("btnPlay").addEventListener("click", togglePlay);
+document.getElementById("intervalSelect").addEventListener("change", () => {
+  interval = parseInt(document.getElementById("intervalSelect").value, 10);
+  if(frames.length) loadSeries();
+});
+document.getElementById("modeSelect").addEventListener("change", () => {
+  mode = document.getElementById("modeSelect").value;
+  document.getElementById("gridSizeSelect").disabled = mode !== "single";
+  if(mode === "single" && selected.length > 1) selected = [selected[0]];
+  updateSidebar();
+  if(frames.length) loadSeries();
+});
+document.getElementById("gridSizeSelect").addEventListener("change", () => {
+  gridSize = parseInt(document.getElementById("gridSizeSelect").value, 10);
+  if(frames.length && mode === "single") loadSeries();
+});
+document.addEventListener("keydown", e => {
+  if(!frames.length) return;
+  if(e.key === "ArrowLeft") navigate(-1);
+  if(e.key === "ArrowRight") navigate(1);
+  if(e.key === " " && !/^(INPUT|SELECT|BUTTON)$/.test(e.target.tagName)){
+    e.preventDefault();
+    togglePlay();
+  }
+});
+
+(function init(){
+  document.getElementById("gridSizeSelect").disabled = false;
+  buildSidebar();
+  writeInput(nowBjTs() - 5 * 60e3);
+  loadSeries();
+})();
+</script>
 </body>
-<body>
-<hr/>
-<p style="background-color:wathet;font-family:arial;color:red;font-size:50px;text-align:center">返回<a href="https://fthcse.github.io">情感小馆主页</a></p>
-<h1 align="center">情感小馆群规则</h1>
-<a href=""><img src="https://z3.ax1x.com/2021/09/01/hBzvvV.jpg" alt="hBzvvV.jpg" border="0" /></a>
-<h1 align="center">情感小馆管理员列表</h1>
-<a href=""><img src="https://z3.ax1x.com/2021/09/01/h0aaa8.jpg" alt="h0aaa8.jpg" border="0" /></a>
-<div class="xiaoacao_footer"><p>Copyright ©2021－2022 情感小馆群务管理 .All Rights Reserved</p></div>
+</html>

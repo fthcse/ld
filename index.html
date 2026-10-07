@@ -292,7 +292,7 @@ input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webk
   </span>
   <div>
     <h1>广东雷达图综合查询器</h1>
-    <p>区域相控阵 / BCGZ多产品 / 广东·华南拼图 · 单产品多时次 · 多产品对比 · 相控阵雷达产品请勿随意外传！</p>
+    <p>区域相控阵 / 广州多产品 / 广东·华南拼图 · 单产品多时次 · 多产品对比 · 相控阵雷达产品请勿随意外传！</p>
   </div>
 </header>
 <div class="app-body">
@@ -404,7 +404,7 @@ const OSS = "https://oss.windbells.cn";
 const LDAD = "https://ldadapp.bj-bmic.cn/proxy/10.224.97.148/proxy/10.1.64.154/art/proxy/10.40.132.153/BCGZ";
 const GDF = "https://www.gdfltq.cn/ProductFile";
 
-// —— 组1：区域雷达拼图（北京时间直用，1分钟）——
+// —— 组1：广州区域雷达拼图（北京时间直用，1分钟）——
 const REGION = [
   {id:"gd_dwq",   label:"大湾区雷达拼图",       minI:1, url:c=>`${OSS}/radar/gd_dwq/full/${c.bj.ymd}/radar_gd_dwq_full_${c.bj.ymdhm}.png`},
   {id:"xkzld_gz", label:"广州全市相控阵细雷达", minI:1, url:c=>`${OSS}/radar/xkzld_gz/guangzhou/${c.bj.ymd}/radar_xkzld_gz_guangzhou_${c.bj.ymdhm}.png`},
@@ -420,22 +420,22 @@ const REGION = [
   {id:"nansha",   label:"南沙雷达",             minI:1, url:c=>`${OSS}/radar/xkzld_ns/nansha/${c.bj.ymd}/radar_xkzld_ns_nansha_${c.bj.ymdhm}.png`}
 ];
 
-// —— 组2：广州相控阵 BCGZ 多产品（北京时间自动转 UTC，1分钟）——
+// —— 组2：广东相控阵 BCGZ 多产品（北京时间自动转 UTC，1分钟）——
 function ldadProd(id, label, sub, tail){
   return {id, label, minI:1, utc:true, flaky:true, url:c=>`${LDAD}/${sub}/${c.utc.y}/${c.utc.ymd}/Z_RADR_C_BCGZ_${c.utc.ymdhm}00_P_DOR_DXK_GD_${tail}.png`};
 }
 const BCGZ = [
-  {id:"bcgz_cr_oss", label:"组合反射率 CR（oss镜像）", minI:1, utc:true, url:c=>`${OSS}/radar/${c.utc.y}/${c.utc.ymd}/${c.utc.hh}/Z_RADR_C_BCGZ_${c.utc.ymdhm}00_P_DOR_DXK_GD_CR.png`},
-  ldadProd("bcgz_cr",     "组合反射率 CR",           "CR",  "CR"),
-  ldadProd("bcgz_ohp",    "一小时雨量累积 OHP",      "OHP", "OHP"),
-  ldadProd("bcgz_z1500",  "反射率 Z_1500米",         "Z",   "CAPPI_Z_1500"),
-  ldadProd("bcgz_z2500",  "反射率 Z_2500米",         "Z",   "CAPPI_Z_2500"),
-  ldadProd("bcgz_w1500",  "三维风场 WIND_1500米",    "WIN", "CAPPI_WIND_1500"),
-  ldadProd("bcgz_w2500",  "三维风场 WIND_2500米",    "WIN", "CAPPI_WIND_2500"),
-  ldadProd("bcgz_kdp1500","差分相移率 KDP_1500米",   "KDP", "CAPPI_KDP_1500"),
-  ldadProd("bcgz_kdp2500","差分相移率 KDP_2500米",   "KDP", "CAPPI_KDP_2500"),
-  ldadProd("bcgz_zdr1500","差分反射率 ZDR_1500米",   "ZDR", "CAPPI_ZDR_1500"),
-  ldadProd("bcgz_zdr2500","差分反射率 ZDR_2500米",   "ZDR", "CAPPI_ZDR_2500")
+  {id:"bcgz_cr_oss", label:"广州全市组合反射率 CR", minI:1, utc:true, url:c=>`${OSS}/radar/${c.utc.y}/${c.utc.ymd}/${c.utc.hh}/Z_RADR_C_BCGZ_${c.utc.ymdhm}00_P_DOR_DXK_GD_CR.png`},
+  ldadProd("bcgz_cr",     "广东省组合反射率 CR",           "CR",  "CR"),
+  ldadProd("bcgz_ohp",    "广东省一小时雨量累积 OHP",      "OHP", "OHP"),
+  ldadProd("bcgz_z1500",  "广东省反射率 Z_1500米",         "Z",   "CAPPI_Z_1500"),
+  ldadProd("bcgz_z2500",  "广东省反射率 Z_2500米",         "Z",   "CAPPI_Z_2500"),
+  ldadProd("bcgz_w1500",  "广东省三维风场 WIND_1500米",    "WIN", "CAPPI_WIND_1500"),
+  ldadProd("bcgz_w2500",  "广东省三维风场 WIND_2500米",    "WIN", "CAPPI_WIND_2500"),
+  ldadProd("bcgz_kdp1500","广东省差分相移率 KDP_1500米",   "KDP", "CAPPI_KDP_1500"),
+  ldadProd("bcgz_kdp2500","广东省差分相移率 KDP_2500米",   "KDP", "CAPPI_KDP_2500"),
+  ldadProd("bcgz_zdr1500","广东省差分反射率 ZDR_1500米",   "ZDR", "CAPPI_ZDR_1500"),
+  ldadProd("bcgz_zdr2500","广东省差分反射率 ZDR_2500米",   "ZDR", "CAPPI_ZDR_2500")
 ];
 
 // —— 组3：广东 / 华南 / 新版广东雷达拼图（6分钟一张）——
@@ -464,15 +464,15 @@ function newMosaicBakProd(id, label){
   }};
 }
 const MOSAIC = [
-  mosaicProd("gdspz", "广东雷达拼图 GDSPZ", "GDSPZ"),
-  mosaicProd("hnspz", "华南雷达拼图 HNSPZ", "HNSPZ"),
+  mosaicProd("gdspz", "广东雷达拼图", "GDSPZ"),
+  mosaicProd("hnspz", "华南雷达拼图", "HNSPZ"),
   newMosaicProd("gdnew", "新版广东雷达拼图"),
   newMosaicBakProd("gdbak", "新版广东雷达拼图（备用）")
 ];
 
 const GROUPS = [
-  {id:"region", short:"区域", title:"区域雷达拼图 · 1分钟 · 北京时间", items:REGION},
-  {id:"bcgz",   short:"BCGZ", title:"广州相控阵 BCGZ · 1分钟 · 北京→UTC", items:BCGZ},
+  {id:"region", short:"区域", title:"广州区域雷达 · 1分钟 · 北京时间", items:REGION},
+  {id:"bcgz",   short:"BCGZ", title:"广东相控阵雷达 · 1分钟 · 北京→UTC", items:BCGZ},
   {id:"mosaic", short:"拼图", title:"广东 / 华南 / 新版广东雷达拼图（含备用） · 6分钟", items:MOSAIC}
 ];
 const ALL = REGION.concat(BCGZ, MOSAIC);

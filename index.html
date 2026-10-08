@@ -292,7 +292,7 @@ input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webk
   </span>
   <div>
     <h1>广东雷达图综合查询器</h1>
-    <p>区域相控阵 / 广州多产品 / 广东·华南拼图 · 单产品多时次 · 多产品对比 · 相控阵雷达产品请勿随意外传！</p>
+    <p>区域相控阵 / 广州多产品 / 广东·华南拼图 · 单产品多时次 · 多产品对比 · 相控阵雷达产品请勿随意外传！(推荐电脑端浏览器使用本平台)</p>
   </div>
 </header>
 <div class="app-body">
@@ -329,9 +329,9 @@ input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webk
       <div class="control-group">
         <label>同时显示（张）</label>
         <select id="gridSizeSelect">
-          <option value="1">1 张</option>
+          <option value="1"selected>1 张</option>
           <option value="2">2 张</option>
-          <option value="4" selected>4 张</option>
+          <option value="4">4 张</option>
           <option value="6">6 张</option>
           <option value="8">8 张</option>
         </select>
@@ -531,7 +531,7 @@ function utcClockFull(ts){ const u = utcParts(ts); return `${u.y}-${pad(u.mo)}-$
 /* ===================== 状态 ===================== */
 let mode       = "single";
 let selected   = [{g:"region", p:REGION[0]}];
-let gridSize   = 4;
+let gridSize   = 1;
 let interval   = 1;
 let frames     = [];
 let currentIdx = 0;
